@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  db:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/data:/var/lib/mysql
+    networks:
+      - minha-rede
+
+  node:
+    build:
+      context: ./node
+      dockerfile: Dockerfile
+    container_name: node
+    ports:
+      - '3000:3000'
+    networks:
+      - minha-rede
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - '8080:8080'
+    networks:
+      - minha-rede
+    depends_on:
+      - node
+
+networks:
+  minha-rede:
+    driver: bridge
